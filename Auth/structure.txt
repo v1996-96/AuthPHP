@@ -1,0 +1,119 @@
+Common code style:
+- user side accessible func -   "login"
+- local func - 					"_deleteToken"
+- db func - 					"get" | "insert" | "delete" + "_" + func name
+- user side accessible fields - "status"
+- local fields - 				"_error"
+- local class instances - 		"__DB"
+
+########################################################
+
+
+/------------------------------------------------------/
+Class Main (abstract)
+
+* __config
+	Contains plugin configuration
+
+* __DBconfig
+	Contains database configuration
+
+- instance (public static)
+	Connects plugin files and makes the auth object
+
+- config (public)
+	Changes plugin configuration
+
+- DBconfig (public)
+	Changes database configuration
+
+
+/------------------------------------------------------/
+Class Auth
+
+* error (private)
+	Error flag
+
+* status (private)
+	Contains plugin status message
+
+* messages (private)
+	Contains plugin messages
+
+* __DB (private)
+	Database plugin instance
+
+- __get (public)
+	Quick access to the settings
+
+- connect (public)
+	Connects to the database
+
+- hasError, getStatus, getMessages (public)
+	Access to the private fields
+
+- login (public)
+	Check user's data and give user access to the system
+
+- lockscreen (public)
+	Check user's data (from lockscreen) and give user access to the system
+
+- check (public)
+	Check current auth status
+
+- newToken (private)
+	Create new token and store it in db and at the user's side
+
+- getToken (private)
+	Get token from user's side
+
+- destroyToken (private)
+	Delete current user's token
+
+- reroute (private)
+	Reroute user to the other page
+
+- generate (private)
+	Generate random string
+
+
+/------------------------------------------------------/
+Class DB
+
+* error (private)
+	Error flag
+
+* status (private)
+	Contains plugin status message
+
+* db (private)
+	Contains current connection instance
+
+- __get (public)
+	Quick access to the settings
+
+- __construct (public)
+	Connects plugin to the sql server
+
+- hasError, getStatus (public)
+	Access to the private fields
+
+- getData (public)
+	Get data from DB by PDO
+
+- setData (public)
+	Set data in the DB by PDO
+
+- deleteToken (public)
+	
+- insertToken (public)
+
+- getTokenInfo (public)
+
+- getTokenInfoUser (public)
+
+- getUserInfoById (public)
+
+- getUserInfoByLP (public)
+
+- getUserByIdP (public)

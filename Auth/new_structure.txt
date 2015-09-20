@@ -1,0 +1,47 @@
+##########################################
+FINAL ATTEMPT TO MAKE AUTHORIZATION PLUGIN
+##########################################
+
+Plugin structure:
+
+abstract class Base
+	Contains settings and plugin instance
+
+class Auth
+	Plugin main class
+
+trait DB
+	Methods for using database
+
+trait Session
+	Methods for using sessions
+
+trait Captcha
+	Methods for making captcha
+
+trait Functions
+	Low level methods (like model in mvc)
+
+trait Messages
+	Contains messages defenitions (like associative array)
+
+interface User
+	Contains fields and methods definitions for user (is necessary in registration)
+
+interface OnLoggedIn
+	Contains methods that would be called after successful authorization
+
+config.ini
+	Quick access to the settings
+
+
+/------------------------------------------------------/
+Functions, that should be implemented:
+
+- Simple authorization
+- Authorization through lockscreen
+- Authorization on multiple devices
+- IP white list
+- IP black list (automatically adds user after 40 wrong attempts)??
+- User role management (divide user in groups with different access)
+- Using captcha

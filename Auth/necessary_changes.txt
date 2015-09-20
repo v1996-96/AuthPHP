@@ -1,0 +1,33 @@
+- make public and protected functions
+  make protected f start from "_"
+
+- make common array of messages
+
+- you can try to use trait for common functions, which you can divide from the basic functions.
+
+- use specific hash function. you can use solutions/5
+
+- make possibility of ip white list
+
+- make binding to mac address too
+
+- make the role management
+
+- make registration
+
+- make activation from email
+
+- make password restore
+
+- 3 attempts to show captcha
+  20 attempts till lockdown
+
+- use log files
+
+- make interface for making the post-auth activity
+
+- add plugin constatns such as VERSION
+
+
+- HOW TO BUILD APPS
+	http://habrahabr.ru/post/133650/
