@@ -8,13 +8,15 @@
  *
  * @author  Trushin Victor <v1996-96@mail.ru>
  * @version 2.0 latest
- * @copyright (c) 2015 Trudhin Victor. All rights reserved.
+ * @copyright (c) 2015 Trushin Victor. All rights reserved.
  * @license http://www.gnu.org/licenses/gpl GNU GENERAL PUBLIC LICENSE v3
  */
 
 namespace Auth_v2;
 
-require_once '../Auth_v2/Auth.php';
+define("__REFERANCE__", "../Auth_v2/");
+
+require_once __REFERANCE__.'Auth.php';
 
 abstract class Base
 {
@@ -24,17 +26,27 @@ abstract class Base
 	// Plugin main variables
 	protected $error  = false,
 			  $status = '',
+			  $allowedRoles = array(),
 			  $__DB   = null;
 
 
 	/**
 	 * Makes an instance of a plugin
-	 * @return [type] [description]
+	 * @return object
 	 */
 	public static function instance(){
 		if(is_null(self::$__instance))
 			self::$__instance = new Auth();
 		return self::$__instance;
+	}
+
+
+	/**
+	 * Makes new instance of a plugin
+	 * @return object
+	 */
+	public static function newInstance(){
+		return new Auth();
 	}
 
 
@@ -95,26 +107,20 @@ abstract class Base
 		'lockDelay'          => 1200,
 		'checkIP'            => 'strict', # strict | acceptable | to_lockscreen
 		'multiple'           => true, 	  # allow multiple connections
-		'onMultiple'         => 'allow',  # allow (just rewrite token) | discard (@user is already loged in) only if multiple == false
+		'onMultiple'         => 'allow',  # allow (just rewrite token) | discard (@user is already loged in) :: only if multiple == false
 		'reroute'            => false,
-		'lockscreen'         => true,
+		'useLockscreen'      => true,
 		'loginPageUrl'       => '/',
 		'lockscreenPageUrl'  => '/lockscreen',
 		'successUrl'         => '/dashboard',
-		'lockscreenRef'      => true,	  # false | cookie name that contains referer url
+		'lockscreenRef'      => false,	  # false | cookie name that contains referer url
 
-		'captcha'			 => false,    # false | number of attempts till showing the captcha
-
-		'block'				 => false,	  # false | number of attempts till block the user
-		'blockTime'			 => 1200,
+		'captcha'			 => false,    # false | true
 
 		'IPWhiteList'		 => array(),
 		'IPBlackList'		 => array(),
 
-		'userRoles'			 => array(),  # false | array of user roles
-		'onWrongRole'		 => 'allow',  # allow | discard
-
-		'confirmReg'		 => true 	  # confirm registration by email or not
+		'userRoles'			 => array()  # false | array of user roles
 		);
 
 
@@ -128,7 +134,7 @@ abstract class Base
 		'fLogin'     => 'login',	# login field name in users table 
 		'hashLogin'  => true,		# hash login or not
 		'fPassword'  => 'pwd',		# password filed name in users table
-		'fEmail'	 => 'email'		# user's email field name in users table
+		'fEmail'	 => 'email',	# user's email field name in users table
 		'fRole'		 => 'role',		# role filed name in users table
 		'fIdUser'    => 'id_user',  # user's id field name in token table
 		'fToken'     => 'token',	# token field name in token table
