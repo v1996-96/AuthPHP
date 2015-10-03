@@ -362,12 +362,11 @@ class Auth extends Main
 	 * Delete existing token from user's side
 	 */
 	private function destroyToken($id){
-		session_unset(); 
-		session_destroy();
+		session_unset();
 		setcookie( $this->hashName, '', time() - 3600, $this->cookiePath );
 
 		if (!is_null($id)) {
-			$this->__DB->deleteToken( (int)$id );
+			$this->_db_deleteToken( (int)$id );
 		}
 	}
 

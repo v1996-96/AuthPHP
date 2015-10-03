@@ -16,24 +16,146 @@ namespace Auth_v2;
 
 trait Functions{
 	
+	/**
+	 * Create new token
+	 * @param  int    $id_user  User id
+	 * @param  bool   $remember Use cookies or session
+	 */
+	private function _newToken($id_user, $remember = false){
+		// Create new token
+		$newToken = $this->_hash( $this->_generate(30) );
+		$this->_db_insertToken($newToken, $id_user);
 
-	private function _getUserRole($id_user){}
+		// Save token on user's side
+		if ($remember) {
+			$cookie = setcookie($this->hashName, 
+								$newToken, 
+								time() + $this->authTime, 
+								$this->cookiePath);
+			if(!$cookie)
+				$_SESSION[ $this->hashName ] = $newToken;
+		} else {
+			$_SESSION[ $this->hashName ] = $newToken;
+		}
+	}
 
 
-	private function _newToken($id_user, $remember){}
+	/**
+	 * Get current token
+	 * @return string|bool Token
+	 */
+	private function _getToken(){
+		if (session_status() === PHP_SESSION_ACTIVE &&
+			isset($_SESSION[ $this->hashName ])){
+			return $_SESSION[ $this->hashName ];
+
+		} elseif (isset($_COOKIE[ $this->hashName ])) {
+			return $_COOKIE[ $this->hashName ];
+
+		} else {
+			return false;
+		}
+	}
 
 
-	private function _getToken(){}
+	/**
+	 * Delete token
+	 * @param  int|null $id Token id
+	 */
+	private function _destroyToken($id){
+		// Delete token from user side
+		session_unset();
+		setcookie( $this->hashName, '', time() - 3600, $this->cookiePath );
+
+		// Delete token from DB
+		if (!is_null($id)) {
+			$this->_db_deleteToken( (int)$id );
+		}
+	}
 
 
-	private function _destroyToken($id){}
+	/**
+	 * Check current user token
+	 * @param  boolean $lockscreenMethod Is this method initialized from lockscreen or not
+	 * @return array                     Token information
+	 */
+	private function _checkCurrentToken($lockscreenMethod = false){
+		// Get user's token
+		if (!($token = $this->_getToken()))
+			return false;
+
+		// Check token's existance
+		$tokenInfo = $this->_db_getToken( $token );
+		if (!($tokenInfo && count($tokenInfo) == 1)) {
+			$this->_destroyToken(null);
+			return $this->_setError("Wrong token", $this->loginPageUrl);
+		}
+
+		// Check token's timeout
+		if ($tokenInfo[0]['diff'] > $this->authTime) {
+			$this->_destroyToken( (int)$tokenInfo[0]['id'] );
+			return $this->_setError("Token expired", $this->loginPageUrl);
+		}
+
+		// Check token's lockscreen timeout
+		if (!$lockscreenMethod && 
+			$this->lockscreen && 
+			$tokenInfo[0]['diff'] > $this->lockDelay) {
+			return $this->_setError("Token expired", $this->lockscreenPageUrl);
+		}
+
+		// Verification of identity of user's ip and token's ip
+		if ($tokenInfo[0][ $this->fTokenIp ] !== $_SERVER['REMOTE_ADDR'] &&
+			$this->checkIPToken == 'strict') {
+			$this->_destroyToken( (int)$tokenInfo[0]['id'] );
+			return $this->_setError("Different IP", $this->loginPageUrl);
+		}
+
+		return $tokenInfo;
+	}
 
 
+	/**
+	 * Check user's IP according to white or black lists
+	 * @return bool Successful or not
+	 */
+	private function _checkIPList(){
+		$ip = $_SERVER['REMOTE_ADDR'];
+
+		switch ($this->IPList) {
+			case 'white':
+				if (!in_array($ip, $this->IPWhiteList))
+					return $this->_setError('Users IP is not in white list');
+				break;
+
+			case 'black':
+				if (in_array($ip, $this->IPBlackList))
+					return $this->_setError('Users IP is in black list');
+				break;
+			
+			default:
+				return $this->_setError('Error in settings. IPList must be "white" or "black"');
+		}
+
+		return true;
+	}
+
+
+	/**
+	 * Get hash of given string
+	 * @param  string $str Input string
+	 * @return string      Hash code
+	 */
 	private function _hash($str){
 		return md5(md5($str));
 	}
 
 
+	/**
+	 * Generate random string
+	 * @param  int    $length String length
+	 * @return string         Output string
+	 */
 	private function _generate($length){
 		$chars = 'abdefhknrstyz23456789';
 		$code = '';
@@ -44,6 +166,11 @@ trait Functions{
 	}
 
 
+	/**
+	 * Switch to error mode and reroute if needed
+	 * @param string $message     Error message
+	 * @param string $reroutePage Page url
+	 */
 	private function _setError($message, $reroutePage = ""){
 		if ($this->reroute && $reroutePage !== "") 
 			$this->reroute( $reroutePage );
@@ -55,14 +182,19 @@ trait Functions{
 	}
 
 
-	public function _log($message, $messageType = "Message"){
+	/**
+	 * Makes logs in log file
+	 * @param  string $message     Log message
+	 * @param  string $messageType Type of log
+	 */
+	private function _log($message, $messageType = "Message"){
 		if (!$this->makeLog) return;
 
-		// we should check the file's weight
-		// if it is too big we need to make new file
-
 		$filename = __REFERANCE__."log.txt";
-		$message = "Time:" . date("Y-m-d H:i:s") . " | Type:" . $messageType . " | Message:" . $message . "\r\n";
+		$message = "Time:" . date("Y-m-d H:i:s") . 
+				   " | Type:" . $messageType . 
+				   " | IP:" . $_SERVER['REMOTE_ADDR'] .
+				   " | Message:" . $message . "\r\n";
 		$f = fopen($filename, "a+");
 		if ($f && is_writable($filename)) {
 			fwrite($f, $message);
@@ -71,6 +203,10 @@ trait Functions{
 	}
 
 
+	/**
+	 * Reroute to defined page
+	 * @param  string $url Page url
+	 */
 	public function reroute($url){
 		if (stripos($url, substr($_SERVER['PHP_SELF'], 1) ) === false) {
 			header("Location: " . $url); 

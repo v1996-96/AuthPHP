@@ -105,7 +105,7 @@ abstract class Base
 		'cookiePath'         => '/',
 		'authTime'           => 10800,
 		'lockDelay'          => 1200,
-		'checkIP'            => 'strict', # strict | acceptable | to_lockscreen
+		'checkIPToken'       => 'strict', # strict | acceptable | to_lockscreen
 		'multiple'           => true, 	  # allow multiple connections
 		'onMultiple'         => 'allow',  # allow (just rewrite token) | discard (@user is already loged in) :: only if multiple == false
 		'reroute'            => false,
@@ -117,10 +117,9 @@ abstract class Base
 
 		'captcha'			 => false,    # false | true
 
+		'IPList'			 => 'black',  # use white list or black
 		'IPWhiteList'		 => array(),
-		'IPBlackList'		 => array(),
-
-		'userRoles'			 => array()  # false | array of user roles
+		'IPBlackList'		 => array()
 		);
 
 
