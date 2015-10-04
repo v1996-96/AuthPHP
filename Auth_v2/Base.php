@@ -14,7 +14,11 @@
 
 namespace Auth_v2;
 
-require_once __AUTH_REFERANCE__.'Auth.php';
+
+require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'Functions.php';
+require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'DB.php';
+require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'Auth.php';
+
 
 abstract class Base
 {

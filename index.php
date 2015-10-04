@@ -1,8 +1,5 @@
 <?php
 
-// Define relative path to plugin
-define("__AUTH_REFERANCE__", "Auth_v2/");
-
 // Get plugin instance
 $auth = require_once 'Auth_v2/Base.php';
 

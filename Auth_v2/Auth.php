@@ -14,8 +14,6 @@
 
 namespace Auth_v2;
 
-require_once __AUTH_REFERANCE__.'Functions.php';
-require_once __AUTH_REFERANCE__.'DB.php';
 
 class Auth extends Base
 {

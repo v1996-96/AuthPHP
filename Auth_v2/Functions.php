@@ -220,7 +220,7 @@ trait Functions{
 	private function _log($message, $messageType = "Message"){
 		if (!$this->makeLog) return;
 
-		$filename = __AUTH_REFERANCE__."log.txt";
+		$filename = dirname(__FILE__).DIRECTORY_SEPARATOR."log.txt";
 		$message = "Time:" . date("Y-m-d H:i:s") . 
 				   " | Type:" . $messageType . 
 				   " | IP:" . $_SERVER['REMOTE_ADDR'] .
