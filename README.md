@@ -1,5 +1,5 @@
 # AuthPHP
-AuthPHP is a plugin for implementing authorization on the site.
+AuthPHP is a plugin for implementing authorization on a website.
 
 ### Requirements
 - PHP 5.4
