@@ -14,31 +14,26 @@ AuthPHP is a plugin for implementing authorization on the site.
 - Supports user roles on different pages
 - Making logs 
 
-### Usage
-##### Setup
-Firstly, you need to download plugin. Source files are based in Auth_v2 folder. So you should copy this folder into your project and place these lines into your code:
+### Setup
+Setting up the plugin is quite simple as you can see below:
 ```php
-// Define relative path to plugin
-// It is temporary
+// Define relative path to plugin. It is temporary thing.
 define("__AUTH_REFERANCE__", "Auth_v2/");
 
 // Get plugin instance
 $auth = require_once 'Auth_v2/Base.php';
-```
 
-After that it is necessary to make some configurations before using plugin. It is possible to do by several ways:
-* Using .ini file
-* Using config and DBconfig methods
-```php
-// Using buit-in methods
+// Using buit-in methods for changing configuration
 $auth->config(array(...));
 $auth->DBconfig(array(...));
 
 // Using config.ini file
 // Example is provided in package
 $auth->iniConfig('config.ini');
-```
 
+// Connect to database. Plugin is using PDO class
+$auth->connect( HOST_NAME, DB_NAME, LOGIN, PASSWORD);
+```
 
 
 ##### Login
