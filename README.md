@@ -17,9 +17,6 @@ AuthPHP is a plugin for implementing authorization on a website.
 ### Setup
 Setting up the plugin is quite simple as you can see below:
 ```php
-// Define relative path to plugin. It is temporary thing.
-define("__AUTH_REFERANCE__", "Auth_v2/");
-
 // Get plugin instance
 $auth = require_once 'Auth_v2/Base.php';
 
