@@ -53,6 +53,12 @@ if (isset($_POST["pwd"])) {
 // If the 'remember' is checked, plugin will create cookie. Otherwise - session.
 ```
 
+### Check auth status
+On each page of your site you need to call this function in order to check is user authorized or not:
+```php
+$auth->check();
+```
+
 ### Log out
 For implementing logout yut need to call these functions:
 ```php
