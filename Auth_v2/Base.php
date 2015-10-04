@@ -14,9 +14,7 @@
 
 namespace Auth_v2;
 
-define("__REFERANCE__", "../Auth_v2/");
-
-require_once __REFERANCE__.'Auth.php';
+require_once __AUTH_REFERANCE__.'Auth.php';
 
 abstract class Base
 {
@@ -69,6 +67,28 @@ abstract class Base
 
 
 	/**
+	 * Get configuration from ini file
+	 * @param  string $path Path to ini file
+	 * @return bool         parsing status  
+	 */
+	public function iniConfig($path){
+		if (is_file($path)) {
+			$config = @parse_ini_file($path, true);
+			if (!$config) return false;
+
+			if (isset($config["config"]))
+				$this->config( $config["config"] );
+
+			if (isset($config["DBconfig"]))
+				$this->DBconfig( $config["DBconfig"] );
+
+			return true;
+		} else
+			return false;
+	}
+
+
+	/**
 	 * Changes the plugin configuration
 	 * @param  array  $new New fields
 	 */
@@ -99,7 +119,6 @@ abstract class Base
 	 * @var array
 	 */
 	protected $__config = array(
-		'locale'			 => 'ru',     # ru|en
 		'makeLog'			 => true,	  # logfile name: log.txt. Access should be prohibited in .htaccess
 		'hashName'           => 'token',
 		'cookiePath'         => '/',
@@ -114,12 +133,10 @@ abstract class Base
 		'lockscreenPageUrl'  => '/lockscreen',
 		'successUrl'         => '/dashboard',
 		'lockscreenRef'      => false,	  # false | cookie name that contains referer url
-
-		'captcha'			 => false,    # false | true
-
 		'IPList'			 => 'black',  # use white list or black
 		'IPWhiteList'		 => array(),
-		'IPBlackList'		 => array()
+		'IPBlackList'		 => array(),
+		'onRoleMismatch'	 => false
 		);
 
 

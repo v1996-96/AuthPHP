@@ -1,43 +1,27 @@
 <?php
 
-$auth = require_once 'Auth/Main.php';
-$captcha = require_once 'Auth/Captcha.php';
+// Define relative path to plugin
+define("__AUTH_REFERANCE__", "Auth_v2/");
 
+// Get plugin instance
+$auth = require_once 'Auth_v2/Base.php';
+
+// Make some configurations
+$auth->iniConfig('config.ini');
+
+// Connect to database
 $auth->connect('localhost', 'auth', 'admin', 'admin');
 
-$auth->config(array(
-	'checkIP'			=> 'strict', # strict | acceptable | to_lockscreen
-	'multiple'			=> false, 	 # allow multiple connections
-	'onMultiple'		=> 'allow',  # allow | discard  only if multiple == false
-	'reroute'           => true,
-	'lockscreen'        => true,
-	'loginPageUrl'      => '/index.php',
-	'lockscreenPageUrl' => '/lockscreen.php',
-	'successUrl'        => '/page.php',
-	'lockRef'			=> false,
-	'lockRef_Name'		=> 'referer'
-	));
 
-$cFlag = false;
+// Log in the user
+if (isset($_POST["login"]) &&
+	isset($_POST["pwd"])) {
 
-if (isset($_POST['login']) && isset($_POST['pwd'])) {
-	if (isset($_POST['captcha'])) {
-		if ($captcha->check($_POST['captcha'])) {
-			$cFlag = false;
-			$auth->login($_POST['login'], $_POST['pwd'], isset($_POST['remember']));
-		} else {
-			$cFlag = true;
-		}
-	} else {
-		$auth->login($_POST['login'], $_POST['pwd'], isset($_POST['remember']));
-	}
+	$auth->login($_POST["login"], $_POST["pwd"], isset($_POST["remember"]));
 } else {
-	if ($auth->check()) 
-		$auth->reroute( $auth->successUrl );
-}
 
-var_dump($auth->getStatus());
-var_dump($auth->getMessages());
+	$auth->check();
+}
 
 ?>
 
@@ -54,20 +38,14 @@ var_dump($auth->getMessages());
 
 	<div class="wrap">
 		<h3>Форма авторизации</h3>
-		<?php if ($auth->hasError() || $cFlag): ?>
+		<?php if ($auth->hasError()): ?>
 		<div class="alert">
 			<?= $auth->getStatus(); ?>
-			<?= $cFlag?'Wrong captcha':''; ?>
 		</div>
 		<?php endif; ?>
 		<form method="POST">
 			<input class="text" name="login" type="text" placeholder="Логин" />
 			<input class="text" name="pwd" type="password" placeholder="Пароль" />
-
-			<div class="captcha">
-				<a href="javascript:void(0);" onclick="document.getElementById('captcha').src='captcha.php';"><img id="captcha" src="captcha.php"/></a>
-				<input class="text" name="captcha" type="text" placeholder="Капча" />
-			</div>
 
 			<label>
 				<input type="checkbox" name="remember" value="1" />

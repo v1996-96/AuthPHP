@@ -14,14 +14,13 @@
 
 namespace Auth_v2;
 
-require_once __REFERANCE__.'Functions.php';
-require_once __REFERANCE__.'Messages.php';
-require_once __REFERANCE__.'DB.php';
+require_once __AUTH_REFERANCE__.'Functions.php';
+require_once __AUTH_REFERANCE__.'DB.php';
 
 class Auth extends Base
 {
 	// Connecting traits
-	use Functions, Messages, DB;
+	use Functions, DB;
 
 
 	function __construct(){
@@ -41,7 +40,13 @@ class Auth extends Base
 	}
 
 
-
+	/**
+	 * Login into system
+	 * @param  string  $login    User's login
+	 * @param  string  $pwd      User's password
+	 * @param  boolean $remember Use cookie or session
+	 * @return bool              Successful login or not
+	 */
 	public function login($login, $pwd, $remember = false){
 		// Check for existing errors
 		if ($this->error || is_null($this->__DB))
@@ -65,9 +70,9 @@ class Auth extends Base
 			count($userInfo) == 1)) {
 			return $this->_setError("Wrong login or password");
 
-		} elseif ($this->allowedRoles && !in_array((int)$userInfo[0][ $this->fRole ], $this->allowedRoles)) {
+		} elseif (!$this->_checkRole($userInfo[0][ $this->fRole ])) {
 			// Check if user has the right to visit page
-			return $this->_setError("You have no right to visit this page");
+			return false;
 		}
 
 		// Check for multiple connections
@@ -94,7 +99,12 @@ class Auth extends Base
 	}
 	
 
-
+	/**
+	 * Login into system using lockscreen
+	 * @param  string  $pwd      User's password
+	 * @param  boolean $remember Use session or cookie
+	 * @return bool              Successful login or not
+	 */
 	public function lockscreen($pwd, $remember = false){
 		// Check for existing errors
 		if ($this->error || is_null($this->__DB))
@@ -118,8 +128,12 @@ class Auth extends Base
 		// Check link with user
 		$userInfo = $this->_db_getUser('IdPassword', 
 				array( 'id' => $tokenInfo[0][ $this->fIdUser ], 'pwd' => $pwd ));
-		if (!($userInfo && count($userInfo) == 1))
+		if (!($userInfo && count($userInfo) == 1)){
 			return $this->_setError("Wrong password");
+
+		} elseif (!$this->_checkRole($userInfo[0][ $this->fRole ])) {
+			return false;
+		}
 
 		// Delete old and create new token
 		$this->_destroyToken( (int)$tokenInfo[0]['id'] );
@@ -130,7 +144,7 @@ class Auth extends Base
 
 		// Reroute to referer or success page
 		if ($this->reroute){
-			if ($this->lockscreenRef && isset($_COOKIE[ $this->lockscreenRef ])){
+			if (is_string($this->lockscreenRef) && isset($_COOKIE[ $this->lockscreenRef ])){
 				$ref = $_COOKIE[ $this->lockscreenRef ];
 				setcookie( $this->lockscreenRef, '', time() -3600 );
 				$this->reroute( $_COOKIE[ $this->lockscreenRef ] );
@@ -142,7 +156,10 @@ class Auth extends Base
 	}
 
 
-
+	/**
+	 * Check current login status
+	 * @return bool  Login status
+	 */
 	public function check(){
 		// Check for existing errors
 		if ($this->error || is_null($this->__DB))
@@ -162,13 +179,19 @@ class Auth extends Base
 		if (!($userInfo && count($userInfo) == 1)){
 			$this->_destroyToken( (int)$tokenInfo[0]['id'] );
 			return $this->_setError("Wrong link between user and token", $this->loginPageUrl);
+
+		} elseif (!$this->_checkRole($userInfo[0][ $this->fRole ])) {
+			return false;
 		}
 
 		return true;
 	}
 
 
-
+	/**
+	 * Log out of system
+	 * @return bool Successful logout or not
+	 */
 	public function logOut(){
 		// Check for existing errors
 		if ($this->error || is_null($this->__DB))
@@ -176,18 +199,23 @@ class Auth extends Base
 
 		// Get current token
 		$currentToken = $this->_getToken();
-		if ($currentToken && $this->makeLog)
+		if (!$currentToken){
+			if ($this->reroute)
+				$this->reroute( $this->loginPageUrl );
+			return true;
+		}
+
+		// Get user's id for log
+		if ($this->makeLog)
 			$tokenInfo = $this->_db_getToken( $currentToken );
-			if ($tokenInfo && count($tokenInfo) == 1) 
-				$userInfo = $this->_db_getUser('id', array('id' => $tokenInfo[0][ $this->fIdUser ]) );
 
 		// Destroy current token
 		$this->_db_deleteToken( $currentToken );
 		$this->_destroyToken(null);
 
 		// Make log
-		if ($this->makeLog && isset($userInfo) && $userInfo) {
-			$userId = $userInfo[0]['id'];
+		if ($this->makeLog && isset($tokenInfo) && $tokenInfo) {
+			$userId = $tokenInfo[0][ $this->fIdUser ];
 		} else {
 			$userId = "undefined";
 		}
@@ -201,10 +229,50 @@ class Auth extends Base
 	}
 
 
-
-	public function setAllowedRoles($roles){
+	/**
+	 * Logout on all connections
+	 * @return bool Logout status
+	 */
+	public function full_logOut(){
 		// Check for existing errors
 		if ($this->error || is_null($this->__DB))
+			return false;
+
+		// Get current token
+		$currentToken = $this->_getToken();
+		if (!$currentToken){
+			if ($this->reroute)
+				$this->reroute( $this->loginPageUrl );
+			return true;
+		}
+
+		// Get token info
+		$tokenInfo = $this->_db_getToken( $currentToken );
+		if (!($tokenInfo && count($tokenInfo) == 1))
+			return false;
+
+		// Destroy current token
+		$this->_db_deleteToken( array('id' => $tokenInfo[0][ $this->fIdUser ]) );
+		$this->_destroyToken(null);
+
+		// Make log
+		$this->_log("User #" . $tokenInfo[0][ $this->fIdUser ] . " logged out on all connections", "Success");
+
+		// Reroute to login page
+		if ($this->reroute)
+			$this->reroute( $this->loginPageUrl );
+
+		return true;
+	}
+
+
+	/**
+	 * Set allowed user roles for current page (plugin instance)
+	 * @param bool $roles Successful set or not
+	 */
+	public function setAllowedRoles($roles){
+		// Check for existing errors
+		if ($this->error)
 			return false;
 
 		if (is_int($roles)) {

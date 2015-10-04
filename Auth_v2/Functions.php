@@ -82,7 +82,7 @@ trait Functions{
 	private function _checkCurrentToken($lockscreenMethod = false){
 		// Get user's token
 		if (!($token = $this->_getToken()))
-			return false;
+			return $this->reroute($this->loginPageUrl);
 
 		// Check token's existance
 		$tokenInfo = $this->_db_getToken( $token );
@@ -99,16 +99,23 @@ trait Functions{
 
 		// Check token's lockscreen timeout
 		if (!$lockscreenMethod && 
-			$this->lockscreen && 
+			$this->useLockscreen && 
 			$tokenInfo[0]['diff'] > $this->lockDelay) {
 			return $this->_setError("Token expired", $this->lockscreenPageUrl);
 		}
 
 		// Verification of identity of user's ip and token's ip
-		if ($tokenInfo[0][ $this->fTokenIp ] !== $_SERVER['REMOTE_ADDR'] &&
-			$this->checkIPToken == 'strict') {
-			$this->_destroyToken( (int)$tokenInfo[0]['id'] );
-			return $this->_setError("Different IP", $this->loginPageUrl);
+		if (!$lockscreenMethod &&
+			$tokenInfo[0][ $this->fTokenIp ] !== $_SERVER['REMOTE_ADDR']) {
+			if ($this->checkIPToken == 'strict'){
+				// If different ip is strictly prohibited
+				$this->_destroyToken( (int)$tokenInfo[0]['id'] );
+				return $this->_setError("Different IP", $this->loginPageUrl);
+
+			} elseif ($this->checkIPToken == 'to_lockscreen' && $this->useLockscreen) {
+				// If different ip is possible but there is a doubt in a security
+				return $this->_setError("Different IP", $this->lockscreenPageUrl);
+			}
 		}
 
 		return $tokenInfo;
@@ -121,16 +128,18 @@ trait Functions{
 	 */
 	private function _checkIPList(){
 		$ip = $_SERVER['REMOTE_ADDR'];
-
+		
 		switch ($this->IPList) {
 			case 'white':
-				if (!in_array($ip, $this->IPWhiteList))
-					return $this->_setError('Users IP is not in white list');
+				if (is_array($this->IPWhiteList) && 
+					!in_array($ip, $this->IPWhiteList))
+					return $this->_setError('Users IP is not in white list', $this->loginPageUrl);
 				break;
 
 			case 'black':
-				if (in_array($ip, $this->IPBlackList))
-					return $this->_setError('Users IP is in black list');
+				if (is_array($this->IPBlackList) && 
+					in_array($ip, $this->IPBlackList))
+					return $this->_setError('Users IP is in black list', $this->loginPageUrl);
 				break;
 			
 			default:
@@ -138,6 +147,27 @@ trait Functions{
 		}
 
 		return true;
+	}
+
+
+	/**
+	 * Check current role with specified list
+	 * @param  integer $role               Current user role
+	 * @return boolean                     Status
+	 */
+	private function _checkRole($role){
+		if (!$this->allowedRoles) return true;
+
+		if (!in_array((int)$role, $this->allowedRoles)) {
+			if ($this->reroute && 
+				is_string($this->onRoleMismatch)) {
+
+				return $this->_setError("User has no right to visit this page", $this->onRoleMismatch);
+			} else {
+				return $this->_setError("User has no right to visit this page");
+			}
+		} else
+			return true;
 	}
 
 
@@ -190,7 +220,7 @@ trait Functions{
 	private function _log($message, $messageType = "Message"){
 		if (!$this->makeLog) return;
 
-		$filename = __REFERANCE__."log.txt";
+		$filename = __AUTH_REFERANCE__."log.txt";
 		$message = "Time:" . date("Y-m-d H:i:s") . 
 				   " | Type:" . $messageType . 
 				   " | IP:" . $_SERVER['REMOTE_ADDR'] .

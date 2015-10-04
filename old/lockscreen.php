@@ -1,26 +1,31 @@
 <?php
 
-// Define relative path to plugin
-define("__AUTH_REFERANCE__", "Auth_v2/");
+$auth = require_once 'Auth/Main.php';
 
-// Get plugin instance
-$auth = require_once 'Auth_v2/Base.php';
-
-// Make some configurations
-$auth->iniConfig('config.ini');
-
-// Connect to database
 $auth->connect('localhost', 'auth', 'admin', 'admin');
 
+$auth->config(array(
+	'checkIP'			=> 'strict', # strict | acceptable | to_lockscreen
+	'multiple'			=> false, 	 # allow multiple connections
+	'onMultiple'		=> 'allow',  # allow | discard  only if multiple == false
+	'reroute'           => true,
+	'lockscreen'        => true,
+	'loginPageUrl'      => '/index.php',
+	'lockscreenPageUrl' => '/lockscreen.php',
+	'successUrl'        => '/page.php',
+	'lockRef'			=> false,
+	'lockRef_Name'		=> 'referer'
+	));
 
-// Log in the user
-if (isset($_POST["pwd"])) {
-
-	$auth->lockscreen($_POST["pwd"], isset($_POST["remember"]));
+if(isset($_POST['pwd'])){
+	$auth->lockscreen($_POST['pwd'], isset($_POST['remember']));
 } else {
-
-	$auth->check();
+	if ($auth->check()) 
+		$auth->reroute( $auth->successUrl );
 }
+
+var_dump($auth->getStatus());
+var_dump($auth->getMessages());
 
 ?>
 

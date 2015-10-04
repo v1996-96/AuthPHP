@@ -2,27 +2,29 @@
 
 setcookie('referer', '/index.php', time(0) + 3600, '/');
 
-$auth = require_once 'Auth/Main.php';
+// Define relative path to plugin
+define("__AUTH_REFERANCE__", "Auth_v2/");
 
+// Get plugin instance
+$auth = require_once 'Auth_v2/Base.php';
+
+// Make some configurations
+$auth->iniConfig('config.ini');
+
+// Connect to database
 $auth->connect('localhost', 'auth', 'admin', 'admin');
 
-$auth->config(array(
-	'checkIP'			=> 'strict', # strict | acceptable | to_lockscreen
-	'multiple'			=> false, 	 # allow multiple connections
-	'onMultiple'		=> 'allow',  # allow | discard  only if multiple == false
-	'reroute'           => true,
-	'lockscreen'        => true,
-	'loginPageUrl'      => '/index.php',
-	'lockscreenPageUrl' => '/lockscreen.php',
-	'successUrl'        => '/page.php',
-	'lockRef'			=> false,
-	'lockRef_Name'		=> 'referer'
-	));
 
-$auth->check();
 
-var_dump($auth->getStatus());
-var_dump($auth->getMessages());
+if (isset($_POST["action"]) && $_POST["action"] == "logout"){
+	$auth->full_logOut();
+} else {
+	$auth->check();
+}
+
+if ($auth->hasError()){
+	echo $auth->getStatus();
+}
 
 ?>
 
@@ -40,6 +42,13 @@ var_dump($auth->getMessages());
 	<h1>
 		Здравствуй, Нео!
 	</h1>
+
+	<div class="wrap">
+		<h3>Действия</h3>
+		<form method="POST">
+			<button type="submit" name="action" value="logout">Выйти</button>
+		</form>
+	</div>
 
 </body>
 </html>
