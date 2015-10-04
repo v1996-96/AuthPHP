@@ -132,5 +132,3 @@ P.S. By switching <code>hashLogin</code> parameter to false, you can use not has
 | token      | varchar(36) | fToken    | Contains token itself |
 | time_add   | datetime curr_timestamp | fTokenAdd | Time when user logged in |
 | user_ip    | varchar(36) | fTokenIp  | Contains user's IP, which he has had when token were created |
-
-### Support
