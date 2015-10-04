@@ -150,7 +150,6 @@ abstract class Base
 		'fLogin'     => 'login',	# login field name in users table 
 		'hashLogin'  => true,		# hash login or not
 		'fPassword'  => 'pwd',		# password filed name in users table
-		'fEmail'	 => 'email',	# user's email field name in users table
 		'fRole'		 => 'role',		# role filed name in users table
 		'fIdUser'    => 'id_user',  # user's id field name in token table
 		'fToken'     => 'token',	# token field name in token table

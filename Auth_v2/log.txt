@@ -2,3 +2,4 @@ Time:2015-10-04 11:11:18 | Type:Success | IP:::1 | Message:User #1 logged out on
 Time:2015-10-04 11:11:20 | Type:Success | IP:::1 | Message:Successful login by user #1
 Time:2015-10-04 11:11:20 | Type:Error | IP:::1 | Message:User has no right to visit this page
 Time:2015-10-04 11:12:02 | Type:Success | IP:::1 | Message:User #1 logged out on all connections
+Time:2015-10-04 11:17:21 | Type:Error | IP:::1 | Message:Wrong login or password
