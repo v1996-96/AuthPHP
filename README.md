@@ -35,6 +35,19 @@ $auth->iniConfig('config.ini');
 $auth->connect( HOST_NAME, DB_NAME, LOGIN, PASSWORD);
 ```
 
+### Login
+
+
+## Lockscreen
+
+## Log out
+
+## Using roles
+
+## Multiple connections
+
+## IP list
+
 ### List of configurations
 ###### Plugin settings
 Do not be scared of such a huge set of configurations. It is quite easy to adopt the plugin to your system.
@@ -59,18 +72,28 @@ Do not be scared of such a huge set of configurations. It is quite easy to adopt
 - **onRoleMismatch** *boolean|string* <code>Default false</code>:<br> Link to the page, to which user will be rerouted in case of role mismatch.
 
 ###### Database settings
+In the DBconfig are stored table and field names. So you can use your own tables by changing these names in settings.
 
-### Login
+**Table 'user'** <code>In config: tUserInfo</code>
+
+| Field name | Field type  | In config | Description        |
+|------------|-------------|-----------|--------------------|
+| id         | int(11) PK  |           | User identificator |
+| login      | varchar(36) | fLogin    | User's login       |
+| pwd        | varchar(36) | fPassword | User's password    |
+| role       | int(11)     | fRole     | User's role        | 
+
+P.S. By switching <code>hashLogin</code> parameter to false, you can use not hashed login (email instead of login).
 
 
-##### Lockscreen
+**Table 'token'** <code>In config: tUserToken</code>
 
-##### Log out
-
-##### Using roles
-
-##### Multiple connections
-
-##### IP list
+| Field name | Field type  | In config | Description        |
+|------------|-------------|-----------|--------------------|
+| id         | int(11) PK  |           | Token identificator |
+| id_user    | int(11) FK  | fIdUser   | Link to the user |
+| token      | varchar(36) | fToken    | Contains token itself |
+| time_add   | datetime curr_timestamp | fTokenAdd | Time when user logged in |
+| user_ip    | varchar(36) | fTokenIp  | Contains user's IP, which he has had when token were created |
 
 ### Support
