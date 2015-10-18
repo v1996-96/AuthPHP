@@ -234,11 +234,27 @@ trait Functions{
 
 
 	/**
+	 * Get only url path without extension
+	 * @param  string $str Url
+	 * @return string      Output path
+	 */
+	private function _urlstrip($str) {
+        $str = parse_url($str);
+        $str = explode('.', $str["path"]);
+        return $str[0];
+    }
+
+
+	/**
 	 * Reroute to defined page
 	 * @param  string $url Page url
 	 */
 	public function reroute($url){
-		if (stripos($url, substr($_SERVER['PHP_SELF'], 1) ) === false) {
+		$to = $this->_urlstrip($url);
+		$current = $this->_urlstrip($_SERVER['REQUEST_URI']);
+
+		if ($this->reroute && 
+			$to !== $current) {
 			header("Location: " . $url); 
 			die("Rerouted to " . $url);
 		}
