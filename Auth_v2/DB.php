@@ -111,6 +111,21 @@ trait DB{
 
 
 	/**
+	 * Deleting expired tokens
+	 * @param  integer $authTime Token expiration delay
+	 * @return bool
+	 */
+	private function _db_deleteOldToken($authTime){
+		if ($this->error) return null;
+
+		return $this->_db_set('DELETE FROM '.$this->tUserToken.
+							  ' WHERE TIMESTAMPDIFF(SECOND, 
+							  '.$this->tUserToken.'.'.$this->fTokenAdd.', 
+							  NOW()) > '.$authTime);
+	}
+
+
+	/**
 	 * Insert new token into DB
 	 * @param  string $token   Token itself
 	 * @param  int    $id_user User id
@@ -133,6 +148,8 @@ trait DB{
 	 */
 	private function _db_getToken($find){
 		if ($this->error) return null;
+
+		$this->_db_deleteOldToken( $this->authTime );
 
 		// Searching by token
 		if (is_string($find)) {
